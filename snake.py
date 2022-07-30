@@ -26,26 +26,56 @@ class Score(object):
         self.score = 0
         self.x = 300
         self.y = 15
-        c.create_text(self.x, self.y, text="ОЧКИ:{}".format(self.score), font="Cambria 18",
+        c.create_text(self.x, self.y, text="Счёт: {}".format(self.score), font="Cambria 16",
                       fill="Light steel blue", tag="score", state='hidden')
+
 
 
     def increment(self):
         c.delete("score")
         self.score += 1
-        c.create_text(self.x, self.y, text="ОЧКИ:{}".format(self.score), font="Cambria 18",
+        c.create_text(self.x, self.y, text="Cчёт: {}".format(self.score), font="Cambria 16",
                       fill="Light steel blue", tag="score")
-	
-    def save(self):
-	    os.chdir('dat')
-	    best_reult = open('score.nfr', 'wb')
-      best_reult.write("score")
-      best_reult.close()
-	    os.chdir('..')
+
+        os.chdir('dat')
+        fil_open = open('score.nfr')
+        res = int(self.score)
+        best_res = int(fil_open.read())
+        if res > best_res:
+            fil_open = open('score.nfr', 'w')
+            fil_open.write(str(res))
+            fil_open.close()
+            os.chdir('..')
+        else:
+            fil_open.close()
+            os.chdir('..')
+
+    def best_score(self):        
+        os.chdir('dat')
+        fil_open = open('score.nfr')
+        best_score_inf = fil_open.read()
+        fil_open.close()
+        c.create_text(300, 485, text='Лучший счёт: {}'.format(best_score_inf), font="Cambria 16",
+                      fill="Light steel blue",tag ="best_score_label", state = 'normal')
+        os.chdir('..')
+
+
+    def best_score_increment(self):
+        c.delete('best_score_label')
+        os.chdir('dat')
+        fil_open = open('score.nfr')
+        best_score_inf = fil_open.read()
+        fil_open.close()
+        c.create_text(300, 485, text='Лучший счёт: {}'.format(best_score_inf), font="Cambria 16",
+                      fill="Light steel blue",tag ="best_score_label", state = 'normal')
+        os.chdir('..')
+
 
     def reset(self):
         c.delete("score")
         self.score = 0
+        c.delete("best_score_label")
+
 
 
 def main():
@@ -108,8 +138,8 @@ class Snake(object):
                  x2 + self.vector[0] * SEG_SIZE, y2 + self.vector[1] * SEG_SIZE)
 
     def add_segment(self):
-
         score.increment()
+        score.best_score_increment()
         last_seg = c.coords(self.segments[0].instance)
         x = last_seg[2] - SEG_SIZE
         y = last_seg[3] - SEG_SIZE
@@ -140,7 +170,7 @@ def clicked(event):
     score.reset()
     c.itemconfigure(restart_text, state='hidden')
     c.itemconfigure(game_over_text, state='hidden')
-    c.itemconfigure(close_but, state='hidden')
+    c.itemconfigure(close_but, state='hidden')  
     start_game()
 
 
@@ -148,9 +178,8 @@ def start_game():
     global s
     create_block()
     s = create_snake()
-
-
     c.bind("<KeyPress>", s.change_direction)
+    score.best_score()
     main()
 
 
